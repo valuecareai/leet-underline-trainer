@@ -689,10 +689,78 @@
     .btn { padding: 12px 20px; font-size: 14px; }
     .legend { gap: 10px; }
   }
+
+  /* ===== 잠금 화면 ===== */
+  #lock-screen {
+    width: 100%;
+    padding: 60px 20px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #lock-screen.unlocked { display: none; }
+  .lock-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 420px;
+    width: 90%;
+  }
+  .lock-box h1 { font-size: 28px; margin-bottom: 8px; }
+  .lock-box .subtitle { color: var(--text-secondary); margin-bottom: 32px; font-size: 15px; }
+  .lock-box .score-preview { font-size: 20px; margin-bottom: 24px; color: var(--accent-blue); font-weight: 700; }
+  .lock-input {
+    width: 200px;
+    padding: 14px 20px;
+    font-size: 24px;
+    text-align: center;
+    letter-spacing: 8px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    outline: none;
+    font-family: 'Noto Sans KR', monospace;
+  }
+  .lock-input:focus { border-color: var(--accent-blue); }
+  .lock-input::placeholder { letter-spacing: 2px; font-size: 14px; color: var(--text-dim); }
+  .lock-btn {
+    display: block;
+    margin: 16px auto 0;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .lock-btn:hover { opacity: 0.9; }
+  .lock-error { color: var(--accent-red); margin-top: 12px; font-size: 13px; min-height: 20px; }
+  .lock-footer { color: var(--text-dim); font-size: 12px; margin-top: 24px; }
+
+  .app-locked { display: none; }
+  .app-unlocked { display: block; }
 </style>
 </head>
 <body>
 
+<!-- 잠금 화면 -->
+<div id="lock-screen">
+  <div class="lock-box">
+    <h1>LEET 밑줄긋기 트레이너</h1>
+    <div class="score-preview">80점 → 115점</div>
+    <div class="subtitle">수강생 전용 콘텐츠입니다<br>발급받은 6자리 코드를 입력하세요</div>
+    <input type="text" class="lock-input" id="lock-code" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autofocus>
+    <button class="lock-btn" onclick="tryUnlock()">입장하기</button>
+    <div class="lock-error" id="lock-error"></div>
+    <div class="lock-footer">코드가 없으시면 영상 설명란을 확인하세요</div>
+  </div>
+</div>
+
+<!-- 헤더 (누구나 볼 수 있음) -->
 <div class="header">
   <div class="badge">LEET Strategy Trainer</div>
   <h1>리트 밑줄긋기 트레이너</h1>
@@ -702,7 +770,7 @@
   <p>지문에서 찾는 시험이 아니라, 논리 구조를 읽는 시험입니다</p>
 </div>
 
-<!-- Tab Navigation -->
+<!-- Tab Navigation (누구나 볼 수 있음) -->
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('lang')" id="tab-lang">
     <span><span class="tab-icon">📘</span> 언어이해</span>
@@ -714,6 +782,9 @@
     <span><span class="tab-icon">⚖️</span> 논증평가</span>
   </button>
 </div>
+
+<!-- 본문 콘텐츠 (잠금 상태에서 숨김) -->
+<div id="app-content" class="app-locked">
 
 <div class="main-content">
 
@@ -1277,7 +1348,62 @@ function resetAll(tab) {
     }
   }
 }
+
+// ===== 잠금 해제 =====
+const VALID_HASHES = [
+  "aa42f1bd859d26e5ef7237e9456ba32fb96032e7e9d69cc2056081fd0d78d694",
+  "a3404eb0c6fa307a2110c1b684c342631570fad312267d5748fdbb2859222849",
+  "b90152e108d609d5bcdd52b964baa750925beda911a654187735ba32cc36488d",
+  "c4f7af44899a79e2ed038762b5a0a3182478dec4c3ccbe1ed91a65ab3b9dc96d",
+  "7bb9456ea4d0239fbd50f338eb8ef3827c4e2b3c517819ab41a49d4f25e6cf4b",
+  "230a8c5632a912385753ddebe51b5405001eccc0c3b1f5f19bcb9f179b9d82c9",
+  "7f54070cf97ba9dc50e93a0bf0df92d21fb9933634746a34a5d40804a9cede87",
+  "d024e8376587eee77d951b522215b1e2efe5a1ba095cd713c04a4710fc2f4641",
+  "9c21d89174da377f5ae361d8954760c749b26ace1cea2e5a1a0076c7e9aef3fd",
+  "be957224b7a6130787b5a15f18df0dad179f0a092c253ad1fe6071259ff49470",
+  "d3c522be904cef36053d4aa6537e73d3bba4eb9588e0f6293df46770c4b86003",
+  "ed7079f2814193d4f08f2a89f1d4b8de254c1f2afe887161f842fd695b94bc68",
+  "e737b7c4a2d0d1bde833ab6a0fd41ced4ad018ccd5734ab0337c2e6b2f65e76b",
+  "8c75729b67f55accf75d4b65b36de296ac3ff515f75e658aea2ded91ff6ff992",
+  "c4cc1f71ed4256abaf2cecc4d332bbbe5705a6501dce1ea1a3e6ad9639a4851d",
+  "a4dcb2268930bddeb44c3d5604c01dd02baa6b0f8d5abceb590d8af42c7e44ff",
+  "b982bdacb671b1882251e1867437cca8b95db1c4454811c8a01b9573a2a999ac",
+  "f8068f643f0a2562c40ee4d6da7764f8136be6c0d341d59be11cc484796e06cd",
+  "cba5fe0f4507747cfde14ceb934063c60e409ddad8aee40c389a94ab2ecd6931",
+  "a8bc9e42475bd9196aa59830e211a5ff15d71fe99d5f964bcb777c8ecada8b32"
+];
+
+async function sha256(text) {
+  const data = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function tryUnlock() {
+  const code = document.getElementById('lock-code').value.trim();
+  if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+    document.getElementById('lock-error').textContent = '6자리 숫자를 입력하세요';
+    return;
+  }
+  const hash = await sha256(code);
+  if (VALID_HASHES.includes(hash)) {
+    document.getElementById('lock-screen').classList.add('unlocked');
+    document.getElementById('app-content').classList.remove('app-locked');
+    document.getElementById('app-content').classList.add('app-unlocked');
+  } else {
+    document.getElementById('lock-error').textContent = '유효하지 않은 코드입니다';
+    document.getElementById('lock-code').value = '';
+    document.getElementById('lock-code').focus();
+  }
+}
+
+// Enter 키로 입장
+document.getElementById('lock-code').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') tryUnlock();
+});
 </script>
+
+</div><!-- /app-content -->
 
 </body>
 </html>
