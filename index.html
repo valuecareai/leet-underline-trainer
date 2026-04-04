@@ -288,10 +288,28 @@
   }
 
   /* User selection underline in practice mode */
-  .user-hl {
-    text-decoration: underline 3px rgba(251,146,60,0.9);
-    text-underline-offset: 4px;
+  .user-hl-blue { text-decoration: underline 3px rgba(79,172,254,0.9); text-underline-offset: 4px; }
+  .user-hl-yellow { text-decoration: underline 3px rgba(251,191,36,0.9); text-underline-offset: 4px; }
+  .user-hl-red { text-decoration: underline 3px rgba(248,113,113,0.9); text-underline-offset: 4px; }
+  .user-hl-green { text-decoration: underline 3px rgba(52,211,153,0.9); text-underline-offset: 4px; }
+  .user-hl-purple { text-decoration: underline 3px rgba(168,85,247,0.9); text-underline-offset: 4px; }
+
+  /* Color picker toolbar */
+  .color-picker {
+    display: flex; gap: 8px; align-items: center; margin: 12px 0;
   }
+  .color-picker-label { font-size: 13px; color: var(--text-secondary); margin-right: 4px; }
+  .color-dot {
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    border: 3px solid transparent; transition: border-color 0.2s;
+  }
+  .color-dot:hover { opacity: 0.8; }
+  .color-dot.active { border-color: #fff; }
+  .color-dot.c-blue { background: rgba(79,172,254,0.9); }
+  .color-dot.c-yellow { background: rgba(251,191,36,0.9); }
+  .color-dot.c-red { background: rgba(248,113,113,0.9); }
+  .color-dot.c-green { background: rgba(52,211,153,0.9); }
+  .color-dot.c-purple { background: rgba(168,85,247,0.9); }
 
   /* Action Buttons */
   .btn-group {
@@ -1185,6 +1203,14 @@ function showAnswerUnderlines(tab) {
   }
 }
 
+// ===== COLOR PICKER =====
+let currentColor = 'blue';
+function pickColor(el) {
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  currentColor = el.dataset.color;
+}
+
 // ===== START PRACTICE MODE =====
 function startPractice(tab) {
   resetAll(tab);
@@ -1194,7 +1220,23 @@ function startPractice(tab) {
   // Show mode indicator
   const modeEl = document.getElementById(tab + '-mode');
   modeEl.className = 'mode-indicator practice-mode-tag';
-  modeEl.innerHTML = '🎯 연습 모드 — 드래그로 밑줄을 그어보세요!';
+  modeEl.innerHTML = '연습 모드 — 색상을 고르고 드래그로 밑줄을 그어보세요!';
+
+  // Show color picker
+  let picker = document.getElementById(tab + '-color-picker');
+  if (!picker) {
+    picker = document.createElement('div');
+    picker.id = tab + '-color-picker';
+    picker.className = 'color-picker';
+    picker.innerHTML = '<span class="color-picker-label">밑줄 색:</span>'
+      + '<div class="color-dot c-blue active" data-color="blue" onclick="pickColor(this)"></div>'
+      + '<div class="color-dot c-yellow" data-color="yellow" onclick="pickColor(this)"></div>'
+      + '<div class="color-dot c-red" data-color="red" onclick="pickColor(this)"></div>'
+      + '<div class="color-dot c-green" data-color="green" onclick="pickColor(this)"></div>'
+      + '<div class="color-dot c-purple" data-color="purple" onclick="pickColor(this)"></div>';
+    modeEl.after(picker);
+  }
+  picker.style.display = 'flex';
 
   // Show practice guide
   document.getElementById(tab + '-practice-guide').classList.remove('hidden');
@@ -1219,7 +1261,7 @@ function startPractice(tab) {
         // extractContents + wrap 방식으로 span 경계를 넘어도 밑줄 적용
         const fragment = range.extractContents();
         const wrapper = document.createElement('mark');
-        wrapper.className = 'user-hl';
+        wrapper.className = 'user-hl-' + currentColor;
         wrapper.appendChild(fragment);
         range.insertNode(wrapper);
         state[tab].userSelections.push(text);
@@ -1317,7 +1359,11 @@ function resetAll(tab) {
   // Remove user highlights
   const passage = document.getElementById(tab + '-passage');
   passage.classList.remove('practice-mode');
-  passage.querySelectorAll('mark.user-hl').forEach(m => {
+  // Hide color picker
+  const picker = document.getElementById(tab + '-color-picker');
+  if (picker) picker.style.display = 'none';
+
+  passage.querySelectorAll('mark[class^="user-hl"]').forEach(m => {
     const parent = m.parentNode;
     while (m.firstChild) parent.insertBefore(m.firstChild, m);
     parent.removeChild(m);
