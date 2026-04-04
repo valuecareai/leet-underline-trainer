@@ -829,7 +829,7 @@
       <!-- Passage -->
       <div class="passage-container" id="lang-passage">
         <div class="passage-label">지 문</div>
-        <span id="lang-s1">공리주의는 행위의 도덕적 옳고 그름이 그 행위가 산출하는 쾌락과 고통의 총량에 의해 결정된다고 주장한다.</span> <span id="lang-s2">그러나 이 입장은 분배의 문제를 간과한다는 비판을 받는다.</span> <span id="lang-s3">예컨대, 소수의 극심한 고통을 감수하더라도 다수의 작은 쾌락의 합이 더 크다면, 공리주의는 그 행위를 정당화할 수 있기 때문이다.</span> <span id="lang-s4">이에 대해 롤스는 정의의 원칙이 공리의 극대화보다 우선해야 한다고 반론한다.</span> <span id="lang-s5">그는 합리적 인간이 '무지의 베일' 뒤에서 선택한다면, 최소 수혜자의 이익을 최대화하는 원칙, 즉 '맥시민 원칙'을 선택할 것이라고 주장한다.</span>
+        공리주의는 행위의 도덕적 옳고 그름이 그 행위가 산출하는 <span id="lang-s1">쾌락과 고통의 총량</span>에 의해 결정된다고 주장한다. <span id="lang-s2">그러나</span> 이 입장은 <span id="lang-s3">분배의 문제를 간과</span>한다는 비판을 받는다. 예컨대, <span id="lang-s4">소수의 극심한 고통을 감수하더라도 다수의 작은 쾌락의 합이 더 크다면, 공리주의는 그 행위를 정당화할 수 있기 때문이다.</span> 이에 대해 롤스는 <span id="lang-s5">정의의 원칙이 공리의 극대화보다 우선</span>해야 한다고 반론한다. 그는 합리적 인간이 '무지의 베일' 뒤에서 선택한다면, <span id="lang-s6">최소 수혜자의 이익을 최대화하는 원칙, 즉 '맥시민 원칙'</span>을 선택할 것이라고 주장한다.
       </div>
 
 
@@ -1096,7 +1096,7 @@ const correctAnswers = { lang: 3, logic: 2, argument: 4 };
 
 // ===== KEY SEGMENTS (for scoring) =====
 const keySegments = {
-  lang: ['lang-s1', 'lang-s2', 'lang-s3', 'lang-s4', 'lang-s5'],
+  lang: ['lang-s1', 'lang-s2', 'lang-s3', 'lang-s4', 'lang-s5', 'lang-s6'],
   logic: ['logic-s1', 'logic-s2', 'logic-s3', 'logic-s4'],
   argument: ['arg-s1', 'arg-s2']
 };
@@ -1129,9 +1129,10 @@ const keyPhrases = {
 const highlightMap = {
   'lang-s1': 'hl hl-topic',
   'lang-s2': 'hl hl-contrast',
-  'lang-s3': 'hl hl-causal',
-  'lang-s4': 'hl hl-key',
+  'lang-s3': 'hl hl-quantity',
+  'lang-s4': 'hl hl-causal',
   'lang-s5': 'hl hl-key',
+  'lang-s6': 'hl hl-key',
   'logic-s1': 'hl hl-topic',
   'logic-s2': 'hl hl-contrast',
   'logic-s3': 'hl hl-key',
@@ -1142,11 +1143,12 @@ const highlightMap = {
 
 // ===== TOOLTIP per segment =====
 const tooltipMap = {
-  'lang-s1': '주제문: 공리주의 정의',
-  'lang-s2': '역접: 논지 전환',
-  'lang-s3': '인과: 정당화 근거',
-  'lang-s4': '핵심: 롤스의 반론',
-  'lang-s5': '개념: 맥시민 원칙',
+  'lang-s1': '주제문: 공리주의 핵심 정의',
+  'lang-s2': '역접: 논지 전환점',
+  'lang-s3': '비판 키워드: 오답 근거',
+  'lang-s4': '인과관계: 정답 근거',
+  'lang-s5': '핵심 개념: 롤스의 반론',
+  'lang-s6': '핵심 개념: 맥시민 원칙',
   'logic-s1': '조건문: A → B',
   'logic-s2': '부정조건: ¬C → D',
   'logic-s3': '제약: ¬(B∧D)',
