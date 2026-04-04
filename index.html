@@ -747,13 +747,13 @@
 </head>
 <body>
 
-<!-- 잠금 화면 -->
-<div id="lock-screen">
+<!-- 잠금 화면 (현재 공개 모드 - 잠금 필요시 hidden 제거) -->
+<div id="lock-screen" class="unlocked">
   <div class="lock-box">
     <h1>LEET 밑줄긋기 트레이너</h1>
     <div class="score-preview">80점 → 115점</div>
     <div class="subtitle">수강생 전용 콘텐츠입니다<br>발급받은 6자리 코드를 입력하세요</div>
-    <input type="text" class="lock-input" id="lock-code" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autofocus>
+    <input type="text" class="lock-input" id="lock-code" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000">
     <button class="lock-btn" onclick="tryUnlock()">입장하기</button>
     <div class="lock-error" id="lock-error"></div>
     <div class="lock-footer">비밀번호가 필요한 분은 YouTube 영상 댓글에 알려주세요</div>
@@ -783,8 +783,8 @@
   </button>
 </div>
 
-<!-- 본문 콘텐츠 (잠금 상태에서 숨김) -->
-<div id="app-content" class="app-locked">
+<!-- 본문 콘텐츠 -->
+<div id="app-content">
 
 <div class="main-content">
 
