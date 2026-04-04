@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEET 밑줄긋기 트레이너 | 80→115점 전략</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-card: #1a1a28;
+    --bg-card-hover: #22223a;
+    --accent-blue: #4facfe;
+    --accent-purple: #a855f7;
+    --accent-pink: #f472b6;
+    --accent-green: #34d399;
+    --accent-yellow: #fbbf24;
+    --accent-red: #f87171;
+    --accent-orange: #fb923c;
+    --text-primary: #e8e8f0;
+    --text-secondary: #9898b0;
+    --text-dim: #5a5a78;
+    --border: #2a2a40;
+    --glow-blue: rgba(79, 172, 254, 0.15);
+    --glow-purple: rgba(168, 85, 247, 0.15);
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background animated gradient */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(79,172,254,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(168,85,247,0.04) 0%, transparent 50%);
+    animation: bgShift 20s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  @keyframes bgShift {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-3%, 3%); }
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 50px 20px 30px;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-blue), var(--accent-purple), transparent);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, rgba(79,172,254,0.15), rgba(168,85,247,0.15));
+    border: 1px solid rgba(79,172,254,0.3);
+    color: var(--accent-blue);
+    margin-bottom: 18px;
+  }
+
+  .header h1 {
+    font-size: 42px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .header p {
+    font-size: 17px;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  .header .score-arrow {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 14px 0;
+    color: var(--accent-green);
+  }
+
+  .header .score-arrow span {
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  /* Tab Navigation */
+  .tab-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 30px 20px 10px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 12px 28px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tab-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, var(--glow-blue), var(--glow-purple));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .tab-btn:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+  .tab-btn:hover::before { opacity: 1; }
+
+  .tab-btn.active {
+    border-color: var(--accent-blue);
+    color: #fff;
+    background: linear-gradient(135deg, rgba(79,172,254,0.2), rgba(168,85,247,0.2));
+    box-shadow: 0 0 25px rgba(79,172,254,0.15);
+  }
+
+  .tab-btn .tab-icon { margin-right: 8px; font-size: 16px; }
+  .tab-btn span { position: relative; z-index: 1; }
+
+  /* Main Content Area */
+  .main-content {
+    max-width: 960px;
+    margin: 30px auto;
+    padding: 0 20px;
+  }
+
+  /* Section Card */
+  .section-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+  }
+
+  .section-heading {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: #fff;
+  }
+
+  /* Passage Display */
+  .passage-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    line-height: 2;
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--text-primary);
+    position: relative;
+    margin-bottom: 20px;
+    user-select: none;
+  }
+
+  .passage-container.practice-mode {
+    user-select: text;
+    cursor: text;
+  }
+
+  .passage-label {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* Underline Highlights */
+  .hl {
+    position: relative;
+    transition: all 0.4s ease;
+  }
+
+  .hl-topic {
+    background: linear-gradient(180deg, transparent 60%, rgba(79,172,254,0.35) 60%);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .hl-contrast {
+    background: linear-gradient(180deg, transparent 60%, rgba(251,191,36,0.35) 60%);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .hl-causal {
+    background: linear-gradient(180deg, transparent 60%, rgba(52,211,153,0.35) 60%);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .hl-quantity {
+    background: linear-gradient(180deg, transparent 60%, rgba(248,113,113,0.35) 60%);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .hl-key {
+    background: linear-gradient(180deg, transparent 60%, rgba(168,85,247,0.35) 60%);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Tooltip for highlights */
+  .hl[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-primary);
+    border: 1px solid var(--accent-blue);
+    color: var(--accent-blue);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  /* User selection highlight in practice mode */
+  .user-hl {
+    background: linear-gradient(180deg, transparent 60%, rgba(251,146,60,0.4) 60%);
+    color: #fff;
+    border-radius: 2px;
+  }
+
+  /* Action Buttons */
+  .btn-group {
+    display: flex;
+    gap: 14px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: #0a0a0f;
+    box-shadow: 0 4px 25px rgba(79,172,254,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 35px rgba(79,172,254,0.4);
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    color: #fff;
+    box-shadow: 0 4px 25px rgba(168,85,247,0.3);
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 35px rgba(168,85,247,0.4);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: var(--glow-blue);
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #34d399, #06b6d4);
+    color: #0a0a0f;
+    box-shadow: 0 4px 25px rgba(52,211,153,0.3);
+  }
+
+  .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 35px rgba(52,211,153,0.4);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+    padding: 16px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+  }
+
+  .legend-dot.blue { background: rgba(79,172,254,0.6); }
+  .legend-dot.yellow { background: rgba(251,191,36,0.6); }
+  .legend-dot.green { background: rgba(52,211,153,0.6); }
+  .legend-dot.red { background: rgba(248,113,113,0.6); }
+  .legend-dot.purple { background: rgba(168,85,247,0.6); }
+
+  /* Question Card */
+  .question-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+
+  .question-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent-yellow);
+    margin-bottom: 16px;
+  }
+
+  .option {
+    padding: 12px 18px;
+    margin: 8px 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .option:hover { border-color: var(--accent-blue); background: rgba(79,172,254,0.05); }
+
+  .option.correct {
+    border-color: var(--accent-green);
+    background: rgba(52,211,153,0.1);
+    color: var(--accent-green);
+  }
+
+  .option.wrong {
+    border-color: var(--accent-red);
+    background: rgba(248,113,113,0.08);
+    color: var(--accent-red);
+    opacity: 0.7;
+  }
+
+  .option-num {
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .option.correct .option-num {
+    background: var(--accent-green);
+    color: #0a0a0f;
+  }
+
+  /* Score Display */
+  .score-display {
+    text-align: center;
+    padding: 30px;
+    margin: 20px 0;
+    background: linear-gradient(135deg, rgba(52,211,153,0.1), rgba(6,182,212,0.1));
+    border: 1px solid rgba(52,211,153,0.3);
+    border-radius: 16px;
+    display: none;
+  }
+
+  .score-display.visible { display: block; animation: fadeIn 0.5s ease; }
+
+  .score-number {
+    font-size: 64px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .score-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+  }
+
+  .score-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--bg-primary);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+    transition: width 1s ease;
+    width: 0%;
+  }
+
+  .score-detail {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 10px;
+  }
+
+  /* Logic Display */
+  .logic-block {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+    font-family: 'Noto Sans KR', monospace;
+    font-size: 15px;
+    line-height: 2;
+  }
+
+  .logic-step {
+    color: var(--text-secondary);
+    padding: 4px 0;
+  }
+
+  .logic-step .arrow { color: var(--accent-blue); font-weight: 700; }
+  .logic-step .result { color: var(--accent-green); font-weight: 700; }
+  .logic-step .negation { color: var(--accent-red); }
+
+  /* Process Box (reasoning) */
+  .process-box {
+    border-left: 3px solid var(--accent-purple);
+    padding: 16px 20px;
+    margin: 16px 0;
+    background: rgba(168,85,247,0.05);
+    border-radius: 0 10px 10px 0;
+  }
+
+  .process-box h4 {
+    color: var(--accent-purple);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .process-item {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 6px 0;
+    line-height: 1.6;
+  }
+
+  .process-item .verdict { font-weight: 700; }
+  .process-item .verdict.yes { color: var(--accent-green); }
+  .process-item .verdict.no { color: var(--accent-red); }
+
+  /* Tip Box */
+  .tip-box {
+    background: linear-gradient(135deg, rgba(251,191,36,0.1), rgba(251,146,60,0.05));
+    border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .tip-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .tip-content h4 {
+    color: var(--accent-yellow);
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .tip-content p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* Mode Indicator */
+  .mode-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .mode-indicator.answer-mode {
+    background: rgba(79,172,254,0.15);
+    border: 1px solid rgba(79,172,254,0.3);
+    color: var(--accent-blue);
+  }
+
+  .mode-indicator.practice-mode-tag {
+    background: rgba(168,85,247,0.15);
+    border: 1px solid rgba(168,85,247,0.3);
+    color: var(--accent-purple);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(168,85,247,0.3); }
+    50% { box-shadow: 0 0 15px 3px rgba(168,85,247,0.15); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hidden sections */
+  .hidden { display: none !important; }
+
+  /* Practice instructions */
+  .practice-instructions {
+    text-align: center;
+    padding: 16px;
+    color: var(--text-dim);
+    font-size: 14px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+  }
+
+  .practice-instructions strong { color: var(--accent-purple); }
+
+  /* Formula Card */
+  .formula-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--accent-purple);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    text-align: center;
+  }
+
+  .formula-card h4 {
+    color: var(--accent-purple);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .formula-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 15px;
+    line-height: 2;
+  }
+
+  .formula-item {
+    color: var(--text-secondary);
+  }
+
+  .formula-item strong { color: var(--text-primary); }
+  .formula-item .ok { color: var(--accent-green); }
+  .formula-item .nok { color: var(--accent-red); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 28px; }
+    .section-card { padding: 24px; }
+    .passage-container { padding: 20px; font-size: 15px; }
+    .btn { padding: 12px 20px; font-size: 14px; }
+    .legend { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="badge">LEET Strategy Trainer</div>
+  <h1>리트 밑줄긋기 트레이너</h1>
+  <div class="score-arrow">
+    <span>80점</span> → 115점
+  </div>
+  <p>지문에서 찾는 시험이 아니라, 논리 구조를 읽는 시험입니다</p>
+</div>
+
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('lang')" id="tab-lang">
+    <span><span class="tab-icon">📘</span> 언어이해</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('logic')" id="tab-logic">
+    <span><span class="tab-icon">🔺</span> 논리추리</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('argument')" id="tab-argument">
+    <span><span class="tab-icon">⚖️</span> 논증평가</span>
+  </button>
+</div>
+
+<div class="main-content">
+
+  <!-- ===== TAB 1: 언어이해 ===== -->
+  <div id="panel-lang">
+    <div class="section-card">
+      <div class="section-title">Part 1 · 언어이해</div>
+      <div class="section-heading">논지 구조 파악 → 선지 대조</div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot blue"></div> 주제문/핵심 주장</div>
+        <div class="legend-item"><div class="legend-dot yellow"></div> 역접 (논지 전환)</div>
+        <div class="legend-item"><div class="legend-dot green"></div> 인과관계</div>
+        <div class="legend-item"><div class="legend-dot red"></div> 수량/정도 표현</div>
+        <div class="legend-item"><div class="legend-dot purple"></div> 핵심 개념</div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="showAnswerUnderlines('lang')">
+          ✏️ 밑줄긋기
+        </button>
+        <button class="btn btn-secondary" onclick="startPractice('lang')">
+          🎯 혼자서 밑줄 그어보기
+        </button>
+        <button class="btn btn-outline" onclick="resetAll('lang')">
+          ↩️ 초기화
+        </button>
+      </div>
+
+      <!-- Mode Indicator -->
+      <div id="lang-mode" class="hidden"></div>
+
+      <!-- Practice Instructions -->
+      <div id="lang-practice-guide" class="practice-instructions hidden">
+        <strong>드래그로 밑줄을 그어보세요!</strong><br>
+        중요하다고 생각하는 부분을 마우스로 드래그하면 밑줄이 그어집니다.<br>
+        다 그었으면 아래 <strong>"채점하기"</strong> 버튼을 눌러주세요.
+      </div>
+
+      <!-- Passage -->
+      <div class="passage-container" id="lang-passage">
+        <div class="passage-label">지 문</div>
+        <span id="lang-s1">공리주의는 행위의 도덕적 옳고 그름이 그 행위가 산출하는 쾌락과 고통의 총량에 의해 결정된다고 주장한다.</span> <span id="lang-s2">그러나 이 입장은 분배의 문제를 간과한다는 비판을 받는다.</span> <span id="lang-s3">예컨대, 소수의 극심한 고통을 감수하더라도 다수의 작은 쾌락의 합이 더 크다면, 공리주의는 그 행위를 정당화할 수 있기 때문이다.</span> <span id="lang-s4">이에 대해 롤스는 정의의 원칙이 공리의 극대화보다 우선해야 한다고 반론한다.</span> <span id="lang-s5">그는 합리적 인간이 '무지의 베일' 뒤에서 선택한다면, 최소 수혜자의 이익을 최대화하는 원칙, 즉 '맥시민 원칙'을 선택할 것이라고 주장한다.</span>
+      </div>
+
+
+      <!-- Score Display -->
+      <div id="lang-score" class="score-display">
+        <div class="score-number" id="lang-score-num">0%</div>
+        <div class="score-label">핵심 포인트 일치율</div>
+        <div class="score-bar"><div class="score-fill" id="lang-score-fill"></div></div>
+        <div class="score-detail" id="lang-score-detail"></div>
+      </div>
+
+      <!-- Grade Button (practice mode) -->
+      <div id="lang-grade-area" class="hidden">
+        <button class="btn btn-success" onclick="gradePractice('lang')">
+          📊 채점하기
+        </button>
+      </div>
+
+      <!-- Question -->
+      <div class="question-card">
+        <h4>❓ 위 글의 내용과 일치하는 것은?</h4>
+        <div class="option" id="lang-opt-1" onclick="selectOption('lang', 1)">
+          <div class="option-num">①</div>
+          <div>공리주의는 분배의 문제를 핵심 원리로 삼는다.</div>
+        </div>
+        <div class="option" id="lang-opt-2" onclick="selectOption('lang', 2)">
+          <div class="option-num">②</div>
+          <div>롤스는 공리주의의 목적 자체를 부정한다.</div>
+        </div>
+        <div class="option" id="lang-opt-3" onclick="selectOption('lang', 3)">
+          <div class="option-num">③</div>
+          <div>공리주의에 따르면 다수의 이익이 소수의 고통을 정당화할 수 있다.</div>
+        </div>
+        <div class="option" id="lang-opt-4" onclick="selectOption('lang', 4)">
+          <div class="option-num">④</div>
+          <div>맥시민 원칙은 다수의 쾌락 총량을 극대화하는 것을 목표로 한다.</div>
+        </div>
+        <div class="option" id="lang-opt-5" onclick="selectOption('lang', 5)">
+          <div class="option-num">⑤</div>
+          <div>무지의 베일은 공리주의의 개념이다.</div>
+        </div>
+      </div>
+
+      <!-- Reasoning (shown after answer) -->
+      <div id="lang-reasoning" class="process-box hidden">
+        <h4>🧠 판단 과정</h4>
+        <div class="process-item">① → <span class="verdict no">X</span> : "간과한다"고 했으므로, 핵심 원리로 삼는다는 것은 반대</div>
+        <div class="process-item">② → <span class="verdict no">X</span> : 롤스는 '우선순위'를 말했지, 공리주의 목적 자체를 부정하진 않음</div>
+        <div class="process-item">③ → <span class="verdict yes">✅ 정답</span> : "소수의 고통 감수 + 다수의 쾌락 합이 크면 → 정당화 가능" 과 일치</div>
+        <div class="process-item">④ → <span class="verdict no">X</span> : 맥시민은 최소 수혜자 이익 최대화 (다수 쾌락 극대화 ≠)</div>
+        <div class="process-item">⑤ → <span class="verdict no">X</span> : 무지의 베일은 롤스의 개념</div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-icon">💡</div>
+        <div class="tip-content">
+          <h4>80→115점 핵심 포인트</h4>
+          <p><strong>"모두, 항상, 반드시"</strong>가 들어간 선지는 90% 오답입니다. 지문은 "일반적으로", "대체로"를 쓰는데 선지가 절대적 표현을 쓰면 함정!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 2: 논리추리 ===== -->
+  <div id="panel-logic" class="hidden">
+    <div class="section-card">
+      <div class="section-title">Part 2 · 추리논증 — 유형 1</div>
+      <div class="section-heading">논리추리형: 조건 명제 → 기호화 → 대우 활용</div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot blue"></div> 조건문 (→)</div>
+        <div class="legend-item"><div class="legend-dot yellow"></div> 부정 조건 (¬)</div>
+        <div class="legend-item"><div class="legend-dot green"></div> 확정 사실</div>
+        <div class="legend-item"><div class="legend-dot purple"></div> 제약 조건</div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="showAnswerUnderlines('logic')">✏️ 밑줄긋기</button>
+        <button class="btn btn-secondary" onclick="startPractice('logic')">🎯 혼자서 밑줄 그어보기</button>
+        <button class="btn btn-outline" onclick="resetAll('logic')">↩️ 초기화</button>
+      </div>
+
+      <div id="logic-mode" class="hidden"></div>
+      <div id="logic-practice-guide" class="practice-instructions hidden">
+        <strong>드래그로 밑줄을 그어보세요!</strong><br>
+        기호화가 필요한 조건문, 부정 조건, 확정 사실을 찾아 드래그하세요.<br>
+        다 그었으면 아래 <strong>"채점하기"</strong> 버튼을 눌러주세요.
+      </div>
+
+      <div class="passage-container" id="logic-passage">
+        <div class="passage-label">조 건</div>
+        <span id="logic-s1">A가 참석하면 B도 참석한다.</span><br>
+        <span id="logic-s2">C가 참석하지 않으면 D가 참석한다.</span><br>
+        <span id="logic-s3">B와 D는 동시에 참석하지 않는다.</span><br>
+        <span id="logic-s4">A는 참석한다.</span>
+      </div>
+
+
+      <!-- Logic Chain -->
+      <div id="logic-chain" class="logic-block hidden">
+        <div class="logic-step"><span class="result">A 참석 (확정)</span></div>
+        <div class="logic-step"><span class="arrow">→</span> [조건 1] A → B &nbsp; <span class="result">∴ B 참석 (확정)</span></div>
+        <div class="logic-step"><span class="arrow">→</span> [조건 3] B이면 ¬D &nbsp; <span class="result">∴ D 불참 (확정)</span></div>
+        <div class="logic-step"><span class="arrow">→</span> [조건 2] ¬C → D 의 <strong>대우</strong>: <span class="negation">¬D → C</span> &nbsp; <span class="result">∴ C 참석 (확정)</span></div>
+      </div>
+
+      <div id="logic-score" class="score-display">
+        <div class="score-number" id="logic-score-num">0%</div>
+        <div class="score-label">핵심 포인트 일치율</div>
+        <div class="score-bar"><div class="score-fill" id="logic-score-fill"></div></div>
+        <div class="score-detail" id="logic-score-detail"></div>
+      </div>
+
+      <div id="logic-grade-area" class="hidden">
+        <button class="btn btn-success" onclick="gradePractice('logic')">📊 채점하기</button>
+      </div>
+
+      <div class="question-card">
+        <h4>❓ 반드시 참인 것은?</h4>
+        <div class="option" id="logic-opt-1" onclick="selectOption('logic', 1)">
+          <div class="option-num">①</div><div>B는 참석하지 않는다.</div>
+        </div>
+        <div class="option" id="logic-opt-2" onclick="selectOption('logic', 2)">
+          <div class="option-num">②</div><div>C는 참석한다.</div>
+        </div>
+        <div class="option" id="logic-opt-3" onclick="selectOption('logic', 3)">
+          <div class="option-num">③</div><div>D는 참석하지 않는다.</div>
+        </div>
+        <div class="option" id="logic-opt-4" onclick="selectOption('logic', 4)">
+          <div class="option-num">④</div><div>C와 D 모두 참석한다.</div>
+        </div>
+        <div class="option" id="logic-opt-5" onclick="selectOption('logic', 5)">
+          <div class="option-num">⑤</div><div>B는 참석하고 C는 참석하지 않는다.</div>
+        </div>
+      </div>
+
+      <div id="logic-reasoning" class="process-box hidden">
+        <h4>🧠 판단 과정</h4>
+        <div class="process-item">① B 불참 → <span class="verdict no">X</span> (B는 참석 확정)</div>
+        <div class="process-item">② C 참석 → <span class="verdict yes">✅ 정답</span> (대우를 통해 C 참석 확정)</div>
+        <div class="process-item">③ D 불참 → 참이지만, ②가 더 직접적인 논리 도출</div>
+        <div class="process-item">④ C+D 모두 참석 → <span class="verdict no">X</span> (D는 불참 확정)</div>
+        <div class="process-item">⑤ B참석+C불참 → <span class="verdict no">X</span> (C 참석 확정)</div>
+      </div>
+
+      <div class="formula-card">
+        <h4>🔑 대우 공식 (반드시 암기!)</h4>
+        <div class="formula-row">
+          <div class="formula-item"><strong>원래 명제:</strong> A → B &nbsp; <span class="ok">✅ 참</span></div>
+          <div class="formula-item"><strong>대우:</strong> ¬B → ¬A &nbsp; <span class="ok">✅ 반드시 참</span></div>
+        </div>
+        <div class="formula-row" style="margin-top:8px;">
+          <div class="formula-item"><strong>역:</strong> B → A &nbsp; <span class="nok">❌ 참 아닐 수 있음</span></div>
+          <div class="formula-item"><strong>이:</strong> ¬A → ¬B &nbsp; <span class="nok">❌ 참 아닐 수 있음</span></div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-icon">💡</div>
+        <div class="tip-content">
+          <h4>줄 치는 포인트</h4>
+          <p>조건문에서 <strong>"~이면", "~할 때", "~인 경우"</strong>가 보이면 즉시 기호화하세요. 기호화가 곧 풀이의 시작입니다!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 3: 논증평가 ===== -->
+  <div id="panel-argument" class="hidden">
+    <div class="section-card">
+      <div class="section-title">Part 2 · 추리논증 — 유형 2</div>
+      <div class="section-heading">논증평가형: 주장의 강화 / 약화 / 오류 판별</div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot blue"></div> 전제 (근거)</div>
+        <div class="legend-item"><div class="legend-dot green"></div> 인과관계 주장</div>
+        <div class="legend-item"><div class="legend-dot purple"></div> 결론</div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="showAnswerUnderlines('argument')">✏️ 밑줄긋기</button>
+        <button class="btn btn-secondary" onclick="startPractice('argument')">🎯 혼자서 밑줄 그어보기</button>
+        <button class="btn btn-outline" onclick="resetAll('argument')">↩️ 초기화</button>
+      </div>
+
+      <div id="argument-mode" class="hidden"></div>
+      <div id="argument-practice-guide" class="practice-instructions hidden">
+        <strong>드래그로 밑줄을 그어보세요!</strong><br>
+        전제(근거), 인과관계, 결론을 구분하며 드래그하세요.<br>
+        다 그었으면 아래 <strong>"채점하기"</strong> 버튼을 눌러주세요.
+      </div>
+
+      <div class="passage-container" id="argument-passage">
+        <div class="passage-label">주 장</div>
+        <span id="arg-s1">규칙적인 운동은 우울증을 감소시킨다.</span> <span id="arg-s2">연구에 따르면 주 3회 이상 운동한 집단은 그렇지 않은 집단보다 우울증 수치가 유의미하게 낮았다.</span>
+      </div>
+
+
+      <div id="argument-score" class="score-display">
+        <div class="score-number" id="argument-score-num">0%</div>
+        <div class="score-label">핵심 포인트 일치율</div>
+        <div class="score-bar"><div class="score-fill" id="argument-score-fill"></div></div>
+        <div class="score-detail" id="argument-score-detail"></div>
+      </div>
+
+      <div id="argument-grade-area" class="hidden">
+        <button class="btn btn-success" onclick="gradePractice('argument')">📊 채점하기</button>
+      </div>
+
+      <div class="question-card">
+        <h4>❓ 위 논증을 약화하는 것은?</h4>
+        <div class="option" id="argument-opt-1" onclick="selectOption('argument', 1)">
+          <div class="option-num">①</div><div>운동을 많이 한 집단은 사회경제적 지위도 높았다.</div>
+        </div>
+        <div class="option" id="argument-opt-2" onclick="selectOption('argument', 2)">
+          <div class="option-num">②</div><div>우울증 환자 중 일부는 운동 능력이 저하된다.</div>
+        </div>
+        <div class="option" id="argument-opt-3" onclick="selectOption('argument', 3)">
+          <div class="option-num">③</div><div>운동의 효과는 개인차가 있다.</div>
+        </div>
+        <div class="option" id="argument-opt-4" onclick="selectOption('argument', 4)">
+          <div class="option-num">④</div><div>연구에 참여한 집단은 운동 외에도 식단을 개선했다.</div>
+        </div>
+        <div class="option" id="argument-opt-5" onclick="selectOption('argument', 5)">
+          <div class="option-num">⑤</div><div>우울증 감소에는 수면도 중요하다.</div>
+        </div>
+      </div>
+
+      <div id="argument-reasoning" class="process-box hidden">
+        <h4>🧠 판단 과정 — 약화 = 인과관계를 끊는 것</h4>
+        <div class="process-item">① 사회경제적 지위 → 제3변수 가능 → 약화 가능 (부분 약화)</div>
+        <div class="process-item">② 우울증→운동 저하 → 역인과, 논증과 다른 방향</div>
+        <div class="process-item">③ 개인차 → 일반적 약화이나 결정적이지 않음</div>
+        <div class="process-item">④ 식단 개선이 원인일 수 있음 → <span class="verdict yes">✅ 정답</span> 교란변수 (실험 통제 실패)</div>
+        <div class="process-item">⑤ 수면도 중요 → 운동의 역할을 직접 부정하지 않음</div>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-icon">💡</div>
+        <div class="tip-content">
+          <h4>약화 문제 공식</h4>
+          <p><strong>약화 = 인과관계를 끊는 것!</strong> 교란변수(제3의 원인), 역인과(원인과 결과 뒤바뀜), 통제 실패(다른 변수 미통제)를 찾으세요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  LEET 밑줄긋기 트레이너 · 80→115점 전략 가이드
+</div>
+
+<script>
+// ===== STATE =====
+const state = {
+  lang: { mode: 'idle', userSelections: [], answered: false },
+  logic: { mode: 'idle', userSelections: [], answered: false },
+  argument: { mode: 'idle', userSelections: [], answered: false }
+};
+
+// ===== CORRECT ANSWERS =====
+const correctAnswers = { lang: 3, logic: 2, argument: 4 };
+
+// ===== KEY SEGMENTS (for scoring) =====
+const keySegments = {
+  lang: ['lang-s1', 'lang-s2', 'lang-s3', 'lang-s4', 'lang-s5'],
+  logic: ['logic-s1', 'logic-s2', 'logic-s3', 'logic-s4'],
+  argument: ['arg-s1', 'arg-s2']
+};
+
+// ===== KEY PHRASES for matching user selections =====
+const keyPhrases = {
+  lang: [
+    '쾌락과 고통의 총량에 의해 결정',
+    '그러나',
+    '분배의 문제를 간과',
+    '소수의 극심한 고통을 감수하더라도 다수의 작은 쾌락의 합이 더 크다면',
+    '정의의 원칙이 공리의 극대화보다 우선',
+    '최소 수혜자의 이익을 최대화하는 원칙',
+    '맥시민 원칙'
+  ],
+  logic: [
+    'A가 참석하면 B도 참석',
+    'C가 참석하지 않으면 D가 참석',
+    'B와 D는 동시에 참석하지 않',
+    'A는 참석한다'
+  ],
+  argument: [
+    '규칙적인 운동은 우울증을 감소',
+    '주 3회 이상 운동한 집단',
+    '우울증 수치가 유의미하게 낮'
+  ]
+};
+
+// ===== HIGHLIGHT CLASSES per segment =====
+const highlightMap = {
+  'lang-s1': 'hl hl-topic',
+  'lang-s2': 'hl hl-contrast',
+  'lang-s3': 'hl hl-causal',
+  'lang-s4': 'hl hl-key',
+  'lang-s5': 'hl hl-key',
+  'logic-s1': 'hl hl-topic',
+  'logic-s2': 'hl hl-contrast',
+  'logic-s3': 'hl hl-key',
+  'logic-s4': 'hl hl-causal',
+  'arg-s1': 'hl hl-key',
+  'arg-s2': 'hl hl-topic'
+};
+
+// ===== TOOLTIP per segment =====
+const tooltipMap = {
+  'lang-s1': '주제문: 공리주의 정의',
+  'lang-s2': '역접: 논지 전환',
+  'lang-s3': '인과: 정당화 근거',
+  'lang-s4': '핵심: 롤스의 반론',
+  'lang-s5': '개념: 맥시민 원칙',
+  'logic-s1': '조건문: A → B',
+  'logic-s2': '부정조건: ¬C → D',
+  'logic-s3': '제약: ¬(B∧D)',
+  'logic-s4': '확정: A = 참',
+  'arg-s1': '결론(인과 주장)',
+  'arg-s2': '전제(근거)'
+};
+
+// ===== TAB SWITCHING =====
+function switchTab(tab) {
+  ['lang', 'logic', 'argument'].forEach(t => {
+    document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+}
+
+// ===== SHOW ANSWER UNDERLINES =====
+function showAnswerUnderlines(tab) {
+  resetAll(tab);
+  state[tab].mode = 'answer';
+
+  // Show mode indicator
+  const modeEl = document.getElementById(tab + '-mode');
+  modeEl.className = 'mode-indicator answer-mode';
+  modeEl.innerHTML = '📖 정답 밑줄 모드';
+
+  // Apply highlights
+  const segments = keySegments[tab];
+  segments.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && highlightMap[id]) {
+      el.className = highlightMap[id];
+      if (tooltipMap[id]) el.setAttribute('data-tooltip', tooltipMap[id]);
+    }
+  });
+
+  // Show logic chain for logic tab
+  if (tab === 'logic') {
+    document.getElementById('logic-chain').classList.remove('hidden');
+  }
+}
+
+// ===== START PRACTICE MODE =====
+function startPractice(tab) {
+  resetAll(tab);
+  state[tab].mode = 'practice';
+  state[tab].userSelections = [];
+
+  // Show mode indicator
+  const modeEl = document.getElementById(tab + '-mode');
+  modeEl.className = 'mode-indicator practice-mode-tag';
+  modeEl.innerHTML = '🎯 연습 모드 — 드래그로 밑줄을 그어보세요!';
+
+  // Show practice guide
+  document.getElementById(tab + '-practice-guide').classList.remove('hidden');
+
+  // Enable text selection
+  document.getElementById(tab + '-passage').classList.add('practice-mode');
+
+  // Show grade button
+  document.getElementById(tab + '-grade-area').classList.remove('hidden');
+
+  // Listen for selections
+  document.getElementById(tab + '-passage').addEventListener('mouseup', function handler(e) {
+    if (state[tab].mode !== 'practice') {
+      this.removeEventListener('mouseup', handler);
+      return;
+    }
+    const selection = window.getSelection();
+    const text = selection.toString().trim();
+    if (text.length > 2) {
+      // Highlight the selection
+      try {
+        const range = selection.getRangeAt(0);
+        const wrapper = document.createElement('mark');
+        wrapper.className = 'user-hl';
+        range.surroundContents(wrapper);
+        state[tab].userSelections.push(text);
+      } catch(e) {
+        // If surroundContents fails (crosses element boundaries), store text only
+        state[tab].userSelections.push(text);
+      }
+      selection.removeAllRanges();
+    }
+  });
+}
+
+// ===== GRADE PRACTICE =====
+function gradePractice(tab) {
+  const phrases = keyPhrases[tab];
+  let matched = 0;
+  const matchedPhrases = [];
+  const missedPhrases = [];
+
+  phrases.forEach(phrase => {
+    const found = state[tab].userSelections.some(sel => {
+      // Check if user's selection contains enough of the key phrase
+      const normalizedSel = sel.replace(/\s+/g, '');
+      const normalizedPhrase = phrase.replace(/\s+/g, '');
+      return normalizedSel.includes(normalizedPhrase) || normalizedPhrase.includes(normalizedSel);
+    });
+    if (found) {
+      matched++;
+      matchedPhrases.push(phrase);
+    } else {
+      missedPhrases.push(phrase);
+    }
+  });
+
+  const percent = Math.round((matched / phrases.length) * 100);
+
+  // Show score
+  const scoreEl = document.getElementById(tab + '-score');
+  scoreEl.classList.add('visible');
+  document.getElementById(tab + '-score-num').textContent = percent + '%';
+
+  setTimeout(() => {
+    document.getElementById(tab + '-score-fill').style.width = percent + '%';
+  }, 100);
+
+  let detail = `${phrases.length}개 핵심 포인트 중 ${matched}개 일치`;
+  if (missedPhrases.length > 0) {
+    detail += `<br><span style="color:var(--accent-yellow)">놓친 포인트:</span> ` + missedPhrases.map(p => `"${p}"`).join(', ');
+  }
+  document.getElementById(tab + '-score-detail').innerHTML = detail;
+
+  // Hide grade button
+  document.getElementById(tab + '-grade-area').classList.add('hidden');
+}
+
+// ===== SELECT OPTION =====
+function selectOption(tab, num) {
+  if (state[tab].answered) return;
+  state[tab].answered = true;
+
+  const correct = correctAnswers[tab];
+
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById(tab + '-opt-' + i);
+    if (i === correct) {
+      el.classList.add('correct');
+    } else if (i === num && i !== correct) {
+      el.classList.add('wrong');
+    }
+  }
+
+  // Show reasoning
+  document.getElementById(tab + '-reasoning').classList.remove('hidden');
+}
+
+// ===== RESET ALL =====
+function resetAll(tab) {
+  state[tab].mode = 'idle';
+  state[tab].userSelections = [];
+  state[tab].answered = false;
+
+  // Hide mode indicator
+  const modeEl = document.getElementById(tab + '-mode');
+  modeEl.className = 'hidden';
+
+  // Remove highlights from segments
+  const segments = keySegments[tab];
+  segments.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.className = '';
+      el.removeAttribute('data-tooltip');
+    }
+  });
+
+  // Remove user highlights
+  const passage = document.getElementById(tab + '-passage');
+  passage.classList.remove('practice-mode');
+  passage.querySelectorAll('mark.user-hl').forEach(m => {
+    const parent = m.parentNode;
+    while (m.firstChild) parent.insertBefore(m.firstChild, m);
+    parent.removeChild(m);
+  });
+
+  // Hide score, grade area, reasoning, logic chain
+  document.getElementById(tab + '-score').classList.remove('visible');
+  document.getElementById(tab + '-score').style.display = '';
+  document.getElementById(tab + '-grade-area').classList.add('hidden');
+  document.getElementById(tab + '-practice-guide').classList.add('hidden');
+  document.getElementById(tab + '-reasoning').classList.add('hidden');
+
+  if (tab === 'logic') {
+    document.getElementById('logic-chain').classList.add('hidden');
+  }
+
+  // Reset score bar
+  document.getElementById(tab + '-score-fill').style.width = '0%';
+
+  // Reset options
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById(tab + '-opt-' + i);
+    if (el) {
+      el.classList.remove('correct', 'wrong');
+    }
+  }
+}
+</script>
+
+</body>
+</html>
