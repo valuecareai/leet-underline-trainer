@@ -287,11 +287,10 @@
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   }
 
-  /* User selection highlight in practice mode */
+  /* User selection underline in practice mode */
   .user-hl {
-    background: linear-gradient(180deg, transparent 60%, rgba(251,146,60,0.4) 60%);
-    color: #fff;
-    border-radius: 2px;
+    text-decoration: underline 3px rgba(251,146,60,0.9);
+    text-underline-offset: 4px;
   }
 
   /* Action Buttons */
@@ -1215,15 +1214,16 @@ function startPractice(tab) {
     const selection = window.getSelection();
     const text = selection.toString().trim();
     if (text.length > 2) {
-      // Highlight the selection
       try {
         const range = selection.getRangeAt(0);
+        // extractContents + wrap 방식으로 span 경계를 넘어도 밑줄 적용
+        const fragment = range.extractContents();
         const wrapper = document.createElement('mark');
         wrapper.className = 'user-hl';
-        range.surroundContents(wrapper);
+        wrapper.appendChild(fragment);
+        range.insertNode(wrapper);
         state[tab].userSelections.push(text);
-      } catch(e) {
-        // If surroundContents fails (crosses element boundaries), store text only
+      } catch(err) {
         state[tab].userSelections.push(text);
       }
       selection.removeAllRanges();
